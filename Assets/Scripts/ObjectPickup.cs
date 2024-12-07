@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ObjectPickup : MonoBehaviour
 {
@@ -8,21 +9,35 @@ public class ObjectPickup : MonoBehaviour
     public float pickupRange = 5f;     // Range to detect objects
     public Transform holdPoint;        // Position where the object will be held
     public LayerMask pickupLayer;      // LayerMask to detect only pickable objects
-    private Rigidbody heldObject;     // Reference to the currently held object
+    private Rigidbody heldObject;      // Reference to the currently held object
 
     [Header("Throwing Settings")]
-    public float maxThrowForce = 25f;     // Maximum throw force
-    public float throwChargeRate = 12.5f; // Rate at which throw force charges
+    public float maxThrowForce = 1000f;  // Maximum throw force
+    public float throwChargeRate = 500f; // Rate at which throw force charges
     private float currentThrowForce;     // Current throw force
     private bool isChargingThrow;        // Tracks whether throw is being charged
 
+    [Header("UI Elements")]
+    public Slider throwChargeBar;       // Reference to the UI Slider
+
     [Header("References")]
-    public Camera playerCamera;       
+    public Camera playerCamera;         // Reference to the player's camera
 
     [Header("Keybinds")]
-    public KeyCode pickupKey = KeyCode.E;      
-    public KeyCode throwKey = KeyCode.Mouse0;  
+    public KeyCode pickupKey = KeyCode.E;      // Key to pick up/drop objects
+    public KeyCode throwKey = KeyCode.Mouse1;  // Key to throw objects (Right Mouse Button)
 
+    private void Start()
+    {
+        if (throwChargeBar != null)
+        {
+            throwChargeBar.gameObject.SetActive(false);
+
+            // Set the slider's max value to the max throw force
+            throwChargeBar.maxValue = maxThrowForce;
+            throwChargeBar.value = 0; // Start at 0
+        }
+    }
     private void Update()
     {
         DebugRaycastCheck();
@@ -44,7 +59,6 @@ public class ObjectPickup : MonoBehaviour
 
     private void FixedUpdate()
     {
-      
         if (heldObject != null)
         {
             MoveHeldObject();
@@ -57,8 +71,14 @@ public class ObjectPickup : MonoBehaviour
         if (Input.GetKeyDown(throwKey) && heldObject != null)
         {
             isChargingThrow = true;
-            currentThrowForce = 0f; // Reset throw force
-            Debug.Log("Charging throw...");
+            currentThrowForce = 0f;
+
+            // Show the charge bar
+            if (throwChargeBar != null)
+            {
+                throwChargeBar.gameObject.SetActive(true);
+                throwChargeBar.value = 0f; // Reset bar value
+            }
         }
 
         // Increment the throw force while holding the key
@@ -66,7 +86,12 @@ public class ObjectPickup : MonoBehaviour
         {
             currentThrowForce += throwChargeRate * Time.deltaTime;
             currentThrowForce = Mathf.Clamp(currentThrowForce, 0f, maxThrowForce);
-            Debug.Log($"Throw Power: {currentThrowForce:F1}");
+
+            // Update the charge bar value
+            if (throwChargeBar != null)
+            {
+                throwChargeBar.value = currentThrowForce;
+            }
         }
 
         // Release the throw
@@ -74,27 +99,26 @@ public class ObjectPickup : MonoBehaviour
         {
             ThrowObject(currentThrowForce);
             isChargingThrow = false;
+
+            // Hide the charge bar
+            if (throwChargeBar != null)
+                throwChargeBar.gameObject.SetActive(false);
+
             Debug.Log($"Threw object with force: {currentThrowForce:F1}");
         }
     }
 
     private void TryPickupObject()
     {
-        // Raycast from the camera in its forward direction
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupLayer))
         {
             if (hit.collider.TryGetComponent<Rigidbody>(out Rigidbody rb))
             {
-                // Pick up the object
                 heldObject = rb;
                 heldObject.useGravity = false;
-                heldObject.drag = 10f;
-
-                // Parent the object to the hold point
-                heldObject.transform.parent = holdPoint;
-                heldObject.velocity = Vector3.zero; // Stop any initial motion
-                heldObject.transform.position = holdPoint.position;
+                heldObject.isKinematic = true;
+                heldObject.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
                 Debug.Log($"Picked up: {heldObject.name}");
             }
@@ -105,12 +129,10 @@ public class ObjectPickup : MonoBehaviour
     {
         if (heldObject == null) return;
 
-        // Detach the object
         heldObject.useGravity = true;
-        heldObject.drag = 0f;
-        heldObject.transform.parent = null; // Detach from holdPoint
-
-        Debug.Log($"Dropped: {heldObject.name}");
+        heldObject.isKinematic = false;
+        heldObject.collisionDetectionMode = CollisionDetectionMode.Discrete;
+        heldObject.transform.parent = null;
         heldObject = null;
     }
 
@@ -118,49 +140,32 @@ public class ObjectPickup : MonoBehaviour
     {
         if (heldObject == null) return;
 
-        // Throw the currently held object
         heldObject.useGravity = true;
-        heldObject.drag = 0f;
+        heldObject.isKinematic = false;
+        heldObject.collisionDetectionMode = CollisionDetectionMode.Discrete;
+
         heldObject.transform.parent = null;
-
-        // Apply a forward force in the direction of the camera
         heldObject.AddForce(playerCamera.transform.forward * throwForce, ForceMode.Impulse);
-
-        Debug.Log($"Threw object with force: {throwForce:F1}");
         heldObject = null;
     }
 
     private void MoveHeldObject()
     {
-        // Smoothly move the object to the hold point position
         Vector3 targetPosition = holdPoint.position;
-        Quaternion targetRotation = holdPoint.rotation;
-
-        heldObject.MovePosition(Vector3.Lerp(heldObject.position, targetPosition, Time.fixedDeltaTime * 10f));
-        heldObject.MoveRotation(Quaternion.Slerp(heldObject.rotation, targetRotation, Time.fixedDeltaTime * 10f));
+        heldObject.MovePosition(targetPosition);
+        heldObject.MoveRotation(holdPoint.rotation);
     }
 
     private void DebugRaycastCheck()
     {
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-
         if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupLayer))
         {
             Debug.DrawLine(ray.origin, hit.point, Color.green);
-            //Debug.Log($"Looking at: {hit.collider.name}");
         }
         else
         {
             Debug.DrawRay(ray.origin, ray.direction * pickupRange, Color.red);
-        }
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (playerCamera != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(playerCamera.transform.position, playerCamera.transform.forward * pickupRange);
         }
     }
 }
