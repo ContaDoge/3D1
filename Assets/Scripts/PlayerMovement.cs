@@ -32,8 +32,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("Ground")]
     public float PlayerHeight;
     public LayerMask groundMask;
-    public float groundCheckRadius = 0.3f;
-    public Transform groundCheckPoint;
     private bool isGrounded;
 
     public Transform orientation;
@@ -84,10 +82,10 @@ public class PlayerMovement : MonoBehaviour
             rb.drag = 0;
         }
         // Debugging
-        Debug.Log($"Is Grounded: {isGrounded}");
+        //Debug.Log($"Is Grounded: {isGrounded}");
         //Debug.Log($"State: {state}");
         //Debug.Log($"Move Speed: {moveSpeed}");
-        Debug.Log($"Can Jump: {canJump}");
+        //Debug.Log($"Can Jump: {canJump}");
     }
     private void StateHandler()
     {
