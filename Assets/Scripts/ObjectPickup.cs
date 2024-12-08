@@ -25,7 +25,7 @@ public class ObjectPickup : MonoBehaviour
 
     [Header("Keybinds")]
     public KeyCode pickupKey = KeyCode.E;      // Key to pick up/drop objects
-    public KeyCode throwKey = KeyCode.Mouse1;  // Key to throw objects (Right Mouse Button)
+    public KeyCode throwKey = KeyCode.Mouse1;  // Key to throw objects
 
     private void Start()
     {
@@ -35,7 +35,7 @@ public class ObjectPickup : MonoBehaviour
 
             // Set the slider's max value to the max throw force
             throwChargeBar.maxValue = maxThrowForce;
-            throwChargeBar.value = 0; // Start at 0
+            throwChargeBar.value = 0;
         }
     }
     private void Update()

@@ -12,8 +12,8 @@ public class MovingPlatform : MonoBehaviour
     private Rigidbody rb;                 // Platform's Rigidbody
     private Transform[] waypoints;        // Local reference to shared waypoints
 
-    private Vector3 previousPosition;     // Previous position for platform movement delta
-    private Vector3 platformMovement;     // Movement delta for the platform
+    private Vector3 previousPosition;     // Previous position for platform
+    private Vector3 platformMovement;     // Movement for the platform
 
     private void Start()
     {
@@ -51,7 +51,7 @@ public class MovingPlatform : MonoBehaviour
 
         rb.MovePosition(transform.position + moveDirection * speed * Time.fixedDeltaTime);
 
-        // Calculate platform movement delta
+        // Calculate platform movement
         platformMovement = transform.position - previousPosition;
         previousPosition = transform.position;
 
@@ -76,7 +76,7 @@ public class MovingPlatform : MonoBehaviour
             Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
             if (playerRb != null)
             {
-                playerRb.position += platformMovement; // Apply platform movement
+                playerRb.position += platformMovement;
             }
         }
     }

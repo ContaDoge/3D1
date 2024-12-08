@@ -79,7 +79,7 @@ public class RespawnManager : MonoBehaviour
             // Reset the object's position
             obj.transform.position = pickableObjectPositions[obj];
 
-            // Reset the object's Rigidbody velocity (use Rigidbody on parent if needed)
+            // Reset the object's Rigidbody velocity
             Rigidbody rb = obj.GetComponentInParent<Rigidbody>();
             if (rb != null)
             {
