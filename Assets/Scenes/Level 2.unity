@@ -15705,6 +15705,9 @@ MonoBehaviour:
   m_text: 'Press or hold left click to throw pickupable object
 
 
+    Red = Death
+
+
 
 '
   m_isRightToLeft: 0
