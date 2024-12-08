@@ -116,7 +116,7 @@ GameObject:
   - component: {fileID: 5680107417060304151}
   - component: {fileID: 6778413562284538874}
   - component: {fileID: 8716543858722727969}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -152,7 +152,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pickupTag: PickUp
+  playerTag: Player
   objectToDeactivate: {fileID: 0}
+  nextSceneName: 
 --- !u!65 &8716543858722727969
 BoxCollider:
   m_ObjectHideFlags: 0
