@@ -3,6 +3,7 @@ Mini-Project
 Project Name: Portal Without the portals
 Name: Mark Louis Albrecht Gerstrup
 Link to Project: https://github.com/ContaDoge/3D1.git 
+YouTube Link: https://www.youtube.com/watch?v=ltnv6yienEE 
 
 Overview of the Game:
 The idea of the project is a physics-based puzzle game similar to portal. The player solves puzzles or challenges by utilizing the movement system and the interact ability. By interacting with an object by pressing e, you can either pickup and drop the object, or throw it. The aim of the game is to progress through levels using the interact mechanic to solve puzzles and challenges. The game gets progressively harder with level 1 being an extremely simple puzzle and level 2 being more of a challenge.
