@@ -4,30 +4,36 @@ using UnityEngine;
 
 public class MovingPlatform : MonoBehaviour
 {
-    [Header("Movement Points")]
-    public Transform[] points;        // Array of points the platform moves between
-    public float speed = 3f;          // Movement speed of the platform
-    public int currentPointIndex = 0; // Index of the current target point
+    [Header("Route Settings")]
+    public RouteManager routeManager;     // Shared route manager
+    public float speed = 3f;              // Platform movement speed
+    private int currentPointIndex = 0;    // Current waypoint index
+    private Rigidbody rb;                 // Platform's Rigidbody
+    private Transform[] waypoints;        // Local reference to waypoints
 
-    private Transform targetPoint;    // Current target point
-    private Rigidbody rb;             // Platform's Rigidbody
+    private Vector3 previousPosition;     // Previous position of the platform
+    private Vector3 platformMovement;     // How much the platform moved
 
     private void Start()
     {
-        if (points.Length == 0)
+        // Ensure waypoints are assigned
+        if (routeManager == null || routeManager.waypoints.Length == 0)
         {
-            Debug.LogError("No points assigned to the Moving Platform!");
+            Debug.LogError("RouteManager or waypoints not set!");
             return;
         }
 
+        // Initialize waypoints and Rigidbody
+        waypoints = routeManager.waypoints;
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true; // Platform doesn't react to physics
-        targetPoint = points[currentPointIndex];
+        rb.isKinematic = true;
+
+        previousPosition = transform.position; // Initialize previous position
     }
 
     private void FixedUpdate()
     {
-        if (targetPoint != null)
+        if (waypoints.Length > 0)
         {
             MovePlatform();
         }
@@ -35,12 +41,18 @@ public class MovingPlatform : MonoBehaviour
 
     private void MovePlatform()
     {
-        // Move towards the target point
-        Vector3 direction = (targetPoint.position - transform.position).normalized;
-        rb.MovePosition(transform.position + direction * speed * Time.fixedDeltaTime);
+        // Move towards the current waypoint
+        Vector3 targetPosition = waypoints[currentPointIndex].position;
+        Vector3 moveDirection = (targetPosition - transform.position).normalized;
 
-        // Check if the platform is close enough to the target point
-        if (Vector3.Distance(transform.position, targetPoint.position) < 0.1f)
+        rb.MovePosition(transform.position + moveDirection * speed * Time.fixedDeltaTime);
+
+        // Calculate platform movement since the last frame
+        platformMovement = transform.position - previousPosition;
+        previousPosition = transform.position;
+
+        // Check if the platform is close to the waypoint
+        if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
             UpdateTargetPoint();
         }
@@ -48,26 +60,36 @@ public class MovingPlatform : MonoBehaviour
 
     private void UpdateTargetPoint()
     {
-        // Cycle to the next point
-        currentPointIndex = (currentPointIndex + 1) % points.Length;
-        targetPoint = points[currentPointIndex];
+        // Move to the next waypoint
+        currentPointIndex = (currentPointIndex + 1) % waypoints.Length;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Make the player a child of the platform when standing on it
         if (collision.gameObject.CompareTag("Player"))
         {
-            collision.transform.SetParent(transform);
+            Debug.Log("Player entered the platform.");
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        // Manually apply platform movement to the player 
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
+            if (playerRb != null)
+            {
+                playerRb.position += platformMovement; // Apply the platform's movement to the player
+            }
         }
     }
 
     private void OnCollisionExit(Collision collision)
     {
-        // Remove the player from being a child when leaving the platform
         if (collision.gameObject.CompareTag("Player"))
         {
-            collision.transform.SetParent(null);
+            Debug.Log("Player left the platform.");
         }
     }
 }

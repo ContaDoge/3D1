@@ -315,7 +315,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   maxThrowForce: 25
-  throwChargeRate: 12.5
+  throwChargeRate: 20
   throwChargeBar: {fileID: 0}
   playerCamera: {fileID: 0}
   pickupKey: 101
